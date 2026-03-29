@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Models\CandidateExperience;
+use App\Models\CandidateEducation;
 
 class CandidateProfile extends Model implements HasMedia
 {
@@ -45,20 +47,32 @@ class CandidateProfile extends Model implements HasMedia
         return $this->hasMany(CandidateSkill::class, 'candidate_id');
     }
 
+    public function experiences(): HasMany
+    {
+        return $this->hasMany(CandidateExperience::class, 'candidate_id')
+            ->orderBy('start_date', 'desc');
+    }
+
+    public function educations(): HasMany
+    {
+        return $this->hasMany(CandidateEducation::class, 'candidate_id')
+            ->orderBy('start_year', 'desc');
+    }
+
     // ── Media Collections ──────────────────────────────────────────
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('photo')
-             ->singleFile()
-             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
 
         $this->addMediaCollection('cv')
-             ->acceptsMimeTypes([
-                 'application/pdf',
-                 'application/msword',
-                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-             ]);
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ]);
     }
 
     // ── Helpers ────────────────────────────────────────────────────
@@ -66,7 +80,7 @@ class CandidateProfile extends Model implements HasMedia
     public function getPhotoUrlAttribute(): string
     {
         return $this->getFirstMediaUrl('photo')
-            ?: 'https://ui-avatars.com/api/?name='.urlencode($this->user->name).'&background=1A1A24&color=A78BFA&size=128';
+            ?: 'https://ui-avatars.com/api/?name=' . urlencode($this->user->name) . '&background=1A1A24&color=A78BFA&size=128';
     }
 
     public function getPrimaryCvAttribute()
