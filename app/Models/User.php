@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\CandidateProfile;
+use App\Models\EmployerProfile;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -35,5 +37,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'password'          => 'hashed',
             'is_active'         => 'boolean',
         ];
+    }
+
+
+    public function candidateProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CandidateProfile::class);
+    }
+
+    public function employerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(EmployerProfile::class);
     }
 }

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Sign in' }} — TechJobs Pakistan</title>
+    <title>@yield('title', 'Sign in') — TechJobs Pakistan</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+    @livewireStyles()
 </head>
 <body style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;
              background:var(--bg-base);position:relative;overflow-x:hidden;">
@@ -29,7 +29,7 @@
     {{-- Auth Card --}}
     <div style="position:relative;z-index:1;width:100%;max-width:460px;
                 margin:0 auto;padding:28px;">
-        {{ $slot }}
+        @yield('content')
     </div>
 
     {{-- Footer note --}}

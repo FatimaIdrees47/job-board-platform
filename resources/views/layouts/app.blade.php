@@ -15,7 +15,7 @@
     <meta property="og:url"         content="{{ url()->current() }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+    @livewireStyles()
 
     {{-- Page-specific head content --}}
     {{ $head ?? '' }}
