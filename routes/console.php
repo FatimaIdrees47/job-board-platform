@@ -1,8 +1,19 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+use App\Models\Job;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Schedule::call(function () {
+    $expired = Job::where('status', 'active')
+        ->whereNotNull('deadline')
+        ->where('deadline', '<', now()->startOfDay())
+        ->get();
+
+    foreach ($expired as $job) {
+        $job->update(['status' => 'expired']);
+    }
+
+    if ($expired->count() > 0) {
+        \Illuminate\Support\Facades\Log::info("Auto-expired {$expired->count()} job listings.");
+    }
+})->daily()->name('jobs:auto-expire');
