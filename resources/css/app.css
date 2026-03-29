@@ -375,3 +375,54 @@ small { font-size: 13px; color: var(--text-tertiary); }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb { background: var(--bg-muted); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ═══════════════════════════════════════
+   DROPDOWN
+═══════════════════════════════════════ */
+.dropdown-item {
+    display: block;
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: background 0.15s, color 0.15s;
+    cursor: pointer;
+}
+.dropdown-item:hover {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════
+   SIDEBAR NAV
+═══════════════════════════════════════ */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 2px;
+}
+.sidebar-link:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+.sidebar-link.active {
+    background: rgba(109,40,217,0.15);
+    color: var(--accent-bright);
+    border: 1px solid rgba(167,139,250,0.15);
+}
+.sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    padding: 16px 12px 6px;
+}
