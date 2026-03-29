@@ -5,6 +5,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Employer\JobController;
 
 // ── Public ────────────────────────────────────────────────────────────────
 Route::get('/', function () {
@@ -67,19 +68,29 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-// ── Role-protected dashboards ─────────────────────────────────────────────
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+// ── Admin routes ──────────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
         Route::get('/dashboard', fn() => 'Admin Dashboard — coming soon')->name('dashboard');
     });
 
-    Route::middleware('role:employer')->prefix('employer')->name('employer.')->group(function () {
+// ── Employer routes ───────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'role:employer'])
+    ->prefix('employer')
+    ->name('employer.')
+    ->group(function () {
         Route::get('/dashboard', fn() => 'Employer Dashboard — coming soon')->name('dashboard');
+        Route::resource('jobs', JobController::class);
+        Route::post('jobs/{job}/duplicate', [JobController::class, 'duplicate'])->name('jobs.duplicate');
+        Route::patch('jobs/{job}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
     });
 
-    Route::middleware('role:candidate')->prefix('candidate')->name('candidate.')->group(function () {
+// ── Candidate routes ──────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'role:candidate'])
+    ->prefix('candidate')
+    ->name('candidate.')
+    ->group(function () {
         Route::get('/dashboard', fn() => 'Candidate Dashboard — coming soon')->name('dashboard');
     });
-
-});
