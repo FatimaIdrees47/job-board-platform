@@ -18,8 +18,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles()
 
-    {{-- Page-specific head content --}}
-    @yield('head')
 </head>
 <body>
 
