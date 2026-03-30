@@ -6,20 +6,20 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Employer\JobController;
+use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
+use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
+use App\Http\Controllers\Candidate\ApplicationController;
+use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController as PublicJobController;
-use App\Http\Controllers\Candidate\ApplicationController;
 
-
-// ── Public job board ──────────────────────────────────────────────
+// ── Public ────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [PublicJobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job:slug}', [PublicJobController::class, 'show'])->name('jobs.show');
 
-
 // ── Guest only ────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
-
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
 
@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
         $request->fulfill();
         $user = $request->user();
 
-        $redirect = match (true) {
+        $redirect = match(true) {
             $user->hasRole('admin')     => route('admin.dashboard'),
             $user->hasRole('employer')  => route('employer.dashboard'),
             $user->hasRole('candidate') => route('candidate.dashboard'),
@@ -75,10 +75,16 @@ Route::middleware(['auth', 'verified', 'role:employer'])
     ->prefix('employer')
     ->name('employer.')
     ->group(function () {
-        Route::get('/dashboard', fn() => 'Employer Dashboard — coming soon')->name('dashboard');
+        Route::get('/dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
         Route::resource('jobs', JobController::class);
         Route::post('jobs/{job}/duplicate', [JobController::class, 'duplicate'])->name('jobs.duplicate');
         Route::patch('jobs/{job}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
+
+        // Employer application management
+        Route::get('jobs/{job}/applications', [EmployerApplicationController::class, 'index'])->name('jobs.applications.index');
+        Route::get('jobs/{job}/applications/{application}', [EmployerApplicationController::class, 'show'])->name('jobs.applications.show');
+        Route::patch('jobs/{job}/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('jobs.applications.update-status');
+        Route::post('jobs/{job}/applications/{application}/note', [EmployerApplicationController::class, 'addNote'])->name('jobs.applications.add-note');
     });
 
 // ── Candidate routes ──────────────────────────────────────────────────────
@@ -86,27 +92,17 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
     ->prefix('candidate')
     ->name('candidate.')
     ->group(function () {
-        Route::get('/dashboard', fn() => 'Candidate Dashboard — coming soon')->name('dashboard');
-    });
+        Route::get('/dashboard', [CandidateDashboardController::class, 'index'])->name('dashboard');
 
-
-Route::middleware(['auth', 'verified', 'role:candidate'])
-    ->prefix('candidate')
-    ->name('candidate.')
-    ->group(function () {
-        Route::get('/dashboard', fn() => 'Candidate Dashboard — coming soon')->name('dashboard');
-
-        // Applications
         Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
         Route::get('/applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
         Route::patch('/applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
 
-        // Saved jobs
         Route::get('/saved-jobs', [ApplicationController::class, 'savedJobs'])->name('saved-jobs');
         Route::post('/saved-jobs/{job}/toggle', [ApplicationController::class, 'toggleSave'])->name('saved-jobs.toggle');
     });
 
-// Apply route — inside auth but accessible by candidates only
+// ── Apply routes ──────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/jobs/{job:slug}/apply', [ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job:slug}/apply', [ApplicationController::class, 'store'])->name('jobs.apply.store');

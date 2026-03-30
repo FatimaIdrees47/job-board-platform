@@ -39,4 +39,6 @@ class CandidateExperience extends Model
 
         return $start.' – '.$end;
     }
+    
+    protected $table = 'candidate_experiences';
 }

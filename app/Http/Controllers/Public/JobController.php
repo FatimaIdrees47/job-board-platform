@@ -17,20 +17,30 @@ class JobController extends Controller
         $jobs = Job::with(['employer', 'category'])
             ->active()
             ->notExpired()
-            ->when($request->search, fn($q) =>
+            ->when(
+                $request->search,
+                fn($q) =>
                 $q->where('title', 'like', "%{$request->search}%")
-                  ->orWhere('description', 'like', "%{$request->search}%")
+                    ->orWhere('description', 'like', "%{$request->search}%")
             )
-            ->when($request->category, fn($q) =>
+            ->when(
+                $request->category,
+                fn($q) =>
                 $q->where('category_id', $request->category)
             )
-            ->when($request->type, fn($q) =>
+            ->when(
+                $request->type,
+                fn($q) =>
                 $q->where('type', $request->type)
             )
-            ->when($request->experience, fn($q) =>
+            ->when(
+                $request->experience,
+                fn($q) =>
                 $q->where('experience_level', $request->experience)
             )
-            ->when($request->remote, fn($q) =>
+            ->when(
+                $request->remote,
+                fn($q) =>
                 $q->where('is_remote', true)
             )
             ->latest()
@@ -42,18 +52,14 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
-        // Only show approved active jobs publicly
         abort_if(
             ! $job->is_approved || $job->status !== 'active',
             404
         );
 
-        // Increment view count
         $job->increment('views_count');
-
         $job->load(['employer', 'category', 'screeningQuestions']);
 
-        // Similar jobs
         $similarJobs = Job::with(['employer', 'category'])
             ->active()
             ->notExpired()
@@ -62,6 +68,15 @@ class JobController extends Controller
             ->take(4)
             ->get();
 
-        return view('public.jobs.show', compact('job', 'similarJobs'));
+        $hasApplied = false;
+
+        if (auth()->check() && auth()->user()->hasRole('candidate')) {
+            $candidate = auth()->user()->candidateProfile;
+            $hasApplied = \App\Models\Application::where('job_id', $job->id)
+                ->where('candidate_id', $candidate->id)
+                ->exists();
+        }
+
+        return view('public.jobs.show', compact('job', 'similarJobs', 'hasApplied'));
     }
 }

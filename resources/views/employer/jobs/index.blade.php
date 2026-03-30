@@ -71,9 +71,6 @@
                                     </span>
                                 @endif
                                 <span style="font-size:12px;color:var(--text-tertiary);">
-                                    {{ $job->applications_count }} applications
-                                </span>
-                                <span style="font-size:12px;color:var(--text-tertiary);">
                                     {{ $job->views_count }} views
                                 </span>
                             </div>
@@ -102,7 +99,18 @@
                         </div>
 
                         {{-- Actions --}}
-                        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+                        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
+
+                            <a href="{{ route('employer.jobs.applications.index', $job) }}"
+                               class="btn btn-secondary btn-sm">
+                                Applications
+                                @if($job->applications_count > 0)
+                                    <span style="background:var(--accent-glow);color:#fff;border-radius:var(--radius-full);padding:1px 7px;font-size:11px;margin-left:4px;">
+                                        {{ $job->applications_count }}
+                                    </span>
+                                @endif
+                            </a>
+
                             <a href="{{ route('employer.jobs.edit', $job) }}"
                                class="btn btn-ghost btn-sm">Edit</a>
 
