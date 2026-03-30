@@ -85,14 +85,14 @@ class Job extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true)
-                     ->where('featured_until', '>', now());
+            ->where('featured_until', '>', now());
     }
 
     public function scopeNotExpired($query)
     {
         return $query->where(function ($q) {
             $q->whereNull('deadline')
-              ->orWhere('deadline', '>=', now());
+                ->orWhere('deadline', '>=', now());
         });
     }
 
@@ -112,11 +112,11 @@ class Job extends Model
         $period   = $this->salary_period === 'monthly' ? '/mo' : '/yr';
 
         if ($this->salary_min && $this->salary_max) {
-            return $currency.' '.number_format($this->salary_min).' – '.number_format($this->salary_max).$period;
+            return $currency . ' ' . number_format($this->salary_min) . ' – ' . number_format($this->salary_max) . $period;
         }
 
         if ($this->salary_min) {
-            return $currency.' '.number_format($this->salary_min).$period;
+            return $currency . ' ' . number_format($this->salary_min) . $period;
         }
 
         return $this->salary_negotiable ? 'Negotiable' : 'Not specified';
@@ -131,8 +131,18 @@ class Job extends Model
     {
         static::creating(function (Job $job) {
             if (empty($job->slug)) {
-                $job->slug = Str::slug($job->title).'-'.Str::random(6);
+                $job->slug = Str::slug($job->title) . '-' . Str::random(6);
             }
         });
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class, 'job_id');
+    }
+
+    public function savedBy(): HasMany
+    {
+        return $this->hasMany(SavedJob::class, 'job_id');
     }
 }

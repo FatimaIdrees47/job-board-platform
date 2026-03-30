@@ -14,6 +14,7 @@
     <meta property="og:type"        content="website">
     <meta property="og:url"         content="{{ url()->current() }}">
 
+    @yield('head')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles()
 
