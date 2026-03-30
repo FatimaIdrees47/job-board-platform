@@ -6,20 +6,14 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Employer\JobController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\JobController as PublicJobController;
 
-// ── Public ────────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    if (auth()->check()) {
-        $user = auth()->user();
-        return match(true) {
-            $user->hasRole('admin')     => redirect()->route('admin.dashboard'),
-            $user->hasRole('employer')  => redirect()->route('employer.dashboard'),
-            $user->hasRole('candidate') => redirect()->route('candidate.dashboard'),
-            default                     => view('welcome'),
-        };
-    }
-    return view('welcome');
-})->name('home');
+// ── Public job board ──────────────────────────────────────────────
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/jobs', [PublicJobController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job:slug}', [PublicJobController::class, 'show'])->name('jobs.show');
+
 
 // ── Guest only ────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -32,7 +26,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/candidate', [RegisterController::class, 'storeCandidate'])->name('register.candidate.store');
     Route::get('/register/employer', [RegisterController::class, 'showEmployerForm'])->name('register.employer');
     Route::post('/register/employer', [RegisterController::class, 'storeEmployer'])->name('register.employer.store');
-
 });
 
 // ── Email Verification ────────────────────────────────────────────────────
@@ -46,7 +39,7 @@ Route::middleware('auth')->group(function () {
         $request->fulfill();
         $user = $request->user();
 
-        $redirect = match(true) {
+        $redirect = match (true) {
             $user->hasRole('admin')     => route('admin.dashboard'),
             $user->hasRole('employer')  => route('employer.dashboard'),
             $user->hasRole('candidate') => route('candidate.dashboard'),
@@ -60,7 +53,6 @@ Route::middleware('auth')->group(function () {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('success', 'Verification link sent to your email.');
     })->middleware('throttle:6,1')->name('verification.send');
-
 });
 
 // ── Authenticated ─────────────────────────────────────────────────────────

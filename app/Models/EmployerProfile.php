@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class EmployerProfile extends Model implements HasMedia
 {
@@ -50,12 +52,12 @@ class EmployerProfile extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('logo')
-             ->singleFile()
-             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
 
         $this->addMediaCollection('cover')
-             ->singleFile()
-             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
     // ── Helpers ────────────────────────────────────────────────────
@@ -63,14 +65,20 @@ class EmployerProfile extends Model implements HasMedia
     public function getLogoUrlAttribute(): string
     {
         return $this->getFirstMediaUrl('logo')
-            ?: 'https://ui-avatars.com/api/?name='.urlencode($this->company_name).'&background=1A1A24&color=22D3EE&size=128';
+            ?: 'https://ui-avatars.com/api/?name=' . urlencode($this->company_name) . '&background=1A1A24&color=22D3EE&size=128';
     }
 
     public static function generateSlug(string $companyName): string
     {
         $slug = Str::slug($companyName);
-        $count = static::where('company_slug', 'like', $slug.'%')->count();
+        $count = static::where('company_slug', 'like', $slug . '%')->count();
 
-        return $count ? $slug.'-'.$count : $slug;
+        return $count ? $slug . '-' . $count : $slug;
+    }
+
+
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class, 'employer_id');
     }
 }
