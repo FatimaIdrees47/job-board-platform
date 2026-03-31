@@ -12,6 +12,9 @@ use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController as PublicJobController;
+use App\Http\Controllers\Candidate\ProfileController;
+
+
 
 // ── Public ────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -41,7 +44,7 @@ Route::middleware('auth')->group(function () {
         $request->fulfill();
         $user = $request->user();
 
-        $redirect = match(true) {
+        $redirect = match (true) {
             $user->hasRole('admin')     => route('admin.dashboard'),
             $user->hasRole('employer')  => route('employer.dashboard'),
             $user->hasRole('candidate') => route('candidate.dashboard'),
@@ -100,10 +103,20 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
 
         Route::get('/saved-jobs', [ApplicationController::class, 'savedJobs'])->name('saved-jobs');
         Route::post('/saved-jobs/{job}/toggle', [ApplicationController::class, 'toggleSave'])->name('saved-jobs.toggle');
+
+        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/skills', [ProfileController::class, 'updateSkills'])->name('profile.skills');
+        Route::post('/profile/experience', [ProfileController::class, 'storeExperience'])->name('profile.experience.store');
+        Route::delete('/profile/experience/{experience}', [ProfileController::class, 'destroyExperience'])->name('profile.experience.destroy');
+        Route::post('/profile/education', [ProfileController::class, 'storeEducation'])->name('profile.education.store');
+        Route::delete('/profile/education/{education}', [ProfileController::class, 'destroyEducation'])->name('profile.education.destroy');
+        Route::post('/profile/cv', [ProfileController::class, 'uploadCv'])->name('profile.cv.upload');
     });
 
 // ── Apply routes ──────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/jobs/{job:slug}/apply', [ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job:slug}/apply', [ApplicationController::class, 'store'])->name('jobs.apply.store');
+
 });

@@ -55,7 +55,6 @@ class ApplicationController extends Controller
             'note'   => ['nullable', 'string', 'max:500'],
         ]);
 
-        $oldStatus = $application->status;
         $application->update(['status' => $request->status]);
 
         ApplicationStatusHistory::create([
@@ -64,6 +63,11 @@ class ApplicationController extends Controller
             'changed_by'     => auth()->id(),
             'note'           => $request->note,
         ]);
+
+        // Notify the candidate
+        $application->candidate->user->notify(
+            new \App\Notifications\ApplicationStatusChanged($application)
+        );
 
         return back()->with('success', 'Application status updated to ' . ucfirst($request->status) . '.');
     }

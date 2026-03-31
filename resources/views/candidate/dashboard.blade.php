@@ -3,22 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('sidebar')
-    <a href="{{ route('candidate.dashboard') }}" class="sidebar-link active">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        Dashboard
-    </a>
-    <a href="{{ route('candidate.applications.index') }}" class="sidebar-link">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        My Applications
-    </a>
-    <a href="{{ route('candidate.saved-jobs') }}" class="sidebar-link">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-        Saved Jobs
-    </a>
-    <a href="{{ route('jobs.index') }}" class="sidebar-link">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        Browse Jobs
-    </a>
+    @include('candidate._sidebar')
 @endsection
 
 @section('content')
@@ -28,6 +13,16 @@
         <h2 style="margin-bottom:4px;">Welcome back, {{ Str::words(auth()->user()->name, 1, '') }} 👋</h2>
         <p style="font-size:14px;">Here's what's happening with your job search.</p>
     </div>
+
+    {{-- Profile completion banner --}}
+    @if($candidate->profile_completion < 80)
+        <div class="alert alert-info" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
+            <span>Your profile is {{ $candidate->profile_completion }}% complete. Complete it to stand out to employers.</span>
+            <a href="{{ route('candidate.profile.edit') }}" class="btn btn-primary btn-sm" style="flex-shrink:0;margin-left:16px;">
+                Complete Profile
+            </a>
+        </div>
+    @endif
 
     {{-- Stats --}}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;">

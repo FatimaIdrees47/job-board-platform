@@ -82,6 +82,11 @@ class ApplicationController extends Controller
         // Increment application count on job
         $job->increment('applications_count');
 
+        // Notify the employer
+        $application->job->employer->user->notify(
+            new \App\Notifications\NewApplicationReceived($application)
+        );
+
         return redirect()->route('candidate.applications.index')
             ->with('success', 'Application submitted successfully! Good luck! 🎉');
     }
