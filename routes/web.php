@@ -15,6 +15,10 @@ use App\Http\Controllers\Public\JobController as PublicJobController;
 use App\Http\Controllers\Candidate\ProfileController;
 use App\Http\Controllers\Candidate\MessageController as CandidateMessageController;
 use App\Http\Controllers\Employer\MessageController as EmployerMessageController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\JobController as AdminJobController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+
 
 
 // ── Public ────────────────────────────────────────────────────────────────
@@ -125,4 +129,21 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/jobs/{job:slug}/apply', [ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job:slug}/apply', [ApplicationController::class, 'store'])->name('jobs.apply.store');
+
+    Route::middleware(['auth', 'verified', 'role:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+            // Job moderation
+            Route::get('/jobs', [AdminJobController::class, 'index'])->name('jobs.index');
+            Route::patch('/jobs/{job}/approve', [AdminJobController::class, 'approve'])->name('jobs.approve');
+            Route::patch('/jobs/{job}/reject', [AdminJobController::class, 'reject'])->name('jobs.reject');
+            Route::delete('/jobs/{job}', [AdminJobController::class, 'destroy'])->name('jobs.destroy');
+
+            // User management
+            Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+            Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('users.toggle-active');
+        });
 });
