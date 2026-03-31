@@ -49,7 +49,7 @@ class Application extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(ApplicationStatusHistory::class)
-                    ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc');
     }
 
     // ── Helpers ────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ class Application extends Model
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'applied'     => 'status-applied',
             'reviewing'   => 'status-reviewing',
             'shortlisted' => 'status-shortlisted',
@@ -75,7 +75,7 @@ class Application extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'applied'     => 'Applied',
             'reviewing'   => 'Under Review',
             'shortlisted' => 'Shortlisted',
@@ -85,5 +85,18 @@ class Application extends Model
             'withdrawn'   => 'Withdrawn',
             default       => 'Applied',
         };
+    }
+
+    public function messages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Message::class)->orderBy('created_at');
+    }
+
+    public function unreadMessagesFor(int $userId): int
+    {
+        return $this->messages()
+            ->where('receiver_id', $userId)
+            ->whereNull('read_at')
+            ->count();
     }
 }

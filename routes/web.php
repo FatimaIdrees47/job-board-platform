@@ -13,7 +13,8 @@ use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardCont
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController as PublicJobController;
 use App\Http\Controllers\Candidate\ProfileController;
-
+use App\Http\Controllers\Candidate\MessageController as CandidateMessageController;
+use App\Http\Controllers\Employer\MessageController as EmployerMessageController;
 
 
 // ── Public ────────────────────────────────────────────────────────────────
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'verified', 'role:employer'])
         Route::get('jobs/{job}/applications/{application}', [EmployerApplicationController::class, 'show'])->name('jobs.applications.show');
         Route::patch('jobs/{job}/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('jobs.applications.update-status');
         Route::post('jobs/{job}/applications/{application}/note', [EmployerApplicationController::class, 'addNote'])->name('jobs.applications.add-note');
+        Route::get('/messages', [EmployerMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{application}', [EmployerMessageController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{application}', [EmployerMessageController::class, 'send'])->name('messages.send');
     });
 
 // ── Candidate routes ──────────────────────────────────────────────────────
@@ -112,11 +116,13 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
         Route::post('/profile/education', [ProfileController::class, 'storeEducation'])->name('profile.education.store');
         Route::delete('/profile/education/{education}', [ProfileController::class, 'destroyEducation'])->name('profile.education.destroy');
         Route::post('/profile/cv', [ProfileController::class, 'uploadCv'])->name('profile.cv.upload');
+        Route::get('/messages', [CandidateMessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{application}', [CandidateMessageController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{application}', [CandidateMessageController::class, 'send'])->name('messages.send');
     });
 
 // ── Apply routes ──────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/jobs/{job:slug}/apply', [ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job:slug}/apply', [ApplicationController::class, 'store'])->name('jobs.apply.store');
-
 });

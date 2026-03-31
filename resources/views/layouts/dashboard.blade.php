@@ -68,11 +68,11 @@
     <div style="flex:1;margin-left:240px;display:flex;flex-direction:column;min-height:100vh;">
 
         {{-- Topbar --}}
-        <header style="height:60px;background:var(--bg-surface);
-                       border-bottom:1px solid var(--bg-muted);
-                       display:flex;align-items:center;justify-content:space-between;
-                       padding:0 28px;position:sticky;top:0;z-index:40;">
-            <div style="font-family:var(--font-display);font-size:18px;font-weight:600;">
+        <header style="height:72px;background:var(--bg-surface);
+               border-bottom:1px solid var(--bg-muted);
+               display:flex;align-items:center;justify-content:space-between;
+               padding:0 32px;position:sticky;top:0;z-index:40;">
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:600; margin: 20px;">
                 {{ $title ?? 'Dashboard' }}
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
