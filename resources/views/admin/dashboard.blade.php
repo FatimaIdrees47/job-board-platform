@@ -9,92 +9,94 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;">
         <div>
             <h2 style="margin-bottom:4px;">Admin Dashboard</h2>
-            <p style="font-size:13px;">Platform overview and moderation.</p>
+            <p style="font-size:13px;">Platform overview — last updated now.</p>
         </div>
         @if($stats['pending_approval'] > 0)
-            <a href="{{ route('admin.jobs.index', ['approval' => 'pending']) }}"
-               class="btn btn-primary">
-                {{ $stats['pending_approval'] }} jobs pending approval
+            <a href="{{ route('admin.jobs.index', ['approval' => 'pending']) }}" class="btn btn-primary">
+                ⚠ {{ $stats['pending_approval'] }} pending approval
             </a>
         @endif
     </div>
 
-    {{-- Stats --}}
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--accent-bright);margin-bottom:4px;">
-                {{ $stats['total_jobs'] }}
+    {{-- Stats Grid --}}
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;">
+        @php
+            $cards = [
+                ['label' => 'Total Jobs',       'value' => $stats['total_jobs'],         'trend' => '+' . $stats['new_jobs_this_week'] . ' this week',  'color' => 'var(--accent-bright)'],
+                ['label' => 'Active Jobs',       'value' => $stats['active_jobs'],        'trend' => $stats['pending_approval'] . ' pending',            'color' => 'var(--success)'],
+                ['label' => 'Candidates',        'value' => $stats['total_candidates'],   'trend' => '+' . $stats['new_users_this_week'] . ' this week', 'color' => 'var(--spark)'],
+                ['label' => 'Employers',         'value' => $stats['total_employers'],    'trend' => $stats['verified_employers'] . ' verified',         'color' => 'var(--info)'],
+                ['label' => 'Applications',      'value' => $stats['total_applications'], 'trend' => '+' . $stats['new_apps_this_week'] . ' this week',  'color' => 'var(--accent-pop)'],
+                ['label' => 'Messages',          'value' => $stats['total_messages'],     'trend' => 'total sent',                                       'color' => 'var(--warning)'],
+                ['label' => 'Verified Employers','value' => $stats['verified_employers'], 'trend' => 'of ' . $stats['total_employers'] . ' total',       'color' => 'var(--success)'],
+                ['label' => 'Pending Approval',  'value' => $stats['pending_approval'],   'trend' => 'needs review',                                     'color' => 'var(--danger)'],
+            ];
+        @endphp
+        @foreach($cards as $card)
+            <div class="card" style="padding:18px;">
+                <div style="font-family:var(--font-display);font-size:28px;font-weight:800;
+                            color:{{ $card['color'] }};margin-bottom:4px;">
+                    {{ number_format($card['value']) }}
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">
+                    {{ $card['label'] }}
+                </div>
+                <div style="font-size:11px;color:var(--text-tertiary);">{{ $card['trend'] }}</div>
             </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Total Jobs</div>
+        @endforeach
+    </div>
+
+    {{-- Charts --}}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+
+        <div class="card" style="padding:24px;">
+            <h4 style="margin-bottom:16px;font-size:15px;">User Signups — Last 30 Days</h4>
+            <canvas id="signupChart" height="120"></canvas>
         </div>
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--success);margin-bottom:4px;">
-                {{ $stats['active_jobs'] }}
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Active Jobs</div>
+
+        <div class="card" style="padding:24px;">
+            <h4 style="margin-bottom:16px;font-size:15px;">Applications — Last 30 Days</h4>
+            <canvas id="applicationChart" height="120"></canvas>
         </div>
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--warning);margin-bottom:4px;">
-                {{ $stats['pending_approval'] }}
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Pending Approval</div>
-        </div>
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--spark);margin-bottom:4px;">
-                {{ $stats['total_candidates'] }}
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Candidates</div>
-        </div>
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--info);margin-bottom:4px;">
-                {{ $stats['total_employers'] }}
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Employers</div>
-        </div>
-        <div class="card" style="padding:20px;text-align:center;">
-            <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--accent-pop);margin-bottom:4px;">
-                {{ $stats['total_applications'] }}
-            </div>
-            <div style="font-size:13px;color:var(--text-secondary);">Applications</div>
-        </div>
+
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
         {{-- Pending Jobs --}}
         <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                 <h4>Pending Approval</h4>
                 <a href="{{ route('admin.jobs.index', ['approval' => 'pending']) }}" style="font-size:13px;">View all →</a>
             </div>
             @if($pendingJobs->isEmpty())
                 <div class="card" style="padding:24px;text-align:center;">
-                    <p style="font-size:14px;color:var(--success);">✓ All jobs are reviewed</p>
+                    <p style="font-size:14px;color:var(--success);">✓ No jobs pending review</p>
                 </div>
             @else
-                <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
                     @foreach($pendingJobs as $job)
-                        <div class="card" style="padding:16px;">
+                        <div class="card" style="padding:14px 16px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
                                 <div style="min-width:0;">
-                                    <div style="font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                         {{ $job->title }}
                                     </div>
                                     <div style="font-size:12px;color:var(--text-tertiary);">
-                                        {{ $job->employer->company_name }}
+                                        {{ $job->employer->company_name }} · {{ $job->created_at->diffForHumans() }}
                                     </div>
                                 </div>
                                 <div style="display:flex;gap:6px;flex-shrink:0;">
                                     <form method="POST" action="{{ route('admin.jobs.approve', $job) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" class="btn btn-success btn-sm"
+                                        <button type="submit" class="btn btn-sm"
                                                 style="background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3);">
-                                            Approve
+                                            ✓
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ route('admin.jobs.reject', $job) }}">
                                         @csrf @method('PATCH')
-                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">✕</button>
                                     </form>
                                 </div>
                             </div>
@@ -104,41 +106,89 @@
             @endif
         </div>
 
-        {{-- Recent Users --}}
+        {{-- Recent Activity Feed --}}
         <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <h4>Recent Users</h4>
-                <a href="{{ route('admin.users.index') }}" style="font-size:13px;">View all →</a>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-                @foreach($recentUsers as $user)
-                    <div class="card" style="padding:14px 16px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                                <div style="width:32px;height:32px;border-radius:50%;background:var(--bg-elevated);
-                                            border:1px solid var(--bg-muted);display:flex;align-items:center;
-                                            justify-content:center;font-family:var(--font-display);font-size:13px;
-                                            font-weight:700;color:var(--accent-bright);flex-shrink:0;">
-                                    {{ strtoupper(substr($user->name, 0, 1)) }}
-                                </div>
-                                <div style="min-width:0;">
-                                    <div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                        {{ $user->name }}
-                                    </div>
-                                    <div style="font-size:11px;color:var(--text-tertiary);">
-                                        {{ $user->getRoleNames()->first() }} · {{ $user->created_at->diffForHumans() }}
-                                    </div>
-                                </div>
+            <h4 style="margin-bottom:14px;">Recent Activity</h4>
+            <div class="card" style="padding:20px;">
+                <div style="position:relative;padding-left:20px;">
+                    <div style="position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:var(--bg-muted);"></div>
+                    @foreach($recentActivity as $activity)
+                        <div style="position:relative;margin-bottom:14px;">
+                            <div style="position:absolute;left:-17px;top:4px;width:8px;height:8px;
+                                        border-radius:50%;background:{{ $activity['color'] }};
+                                        border:2px solid var(--bg-base);flex-shrink:0;"></div>
+                            <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">
+                                {{ $activity['message'] }}
                             </div>
-                            @if(!$user->is_active)
-                                <span class="badge badge-danger">Suspended</span>
-                            @endif
+                            <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">
+                                {{ $activity['time']->diffForHumans() }}
+                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
         </div>
 
     </div>
 
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const labels = @json($labels);
+const signups = @json($signups);
+const applications = @json($applications);
+
+const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+        x: {
+            ticks: {
+                color: 'rgba(160,156,181,0.6)',
+                font: { size: 10 },
+                maxTicksLimit: 8,
+            },
+            grid: { color: 'rgba(46,46,62,0.5)' }
+        },
+        y: {
+            ticks: { color: 'rgba(160,156,181,0.6)', font: { size: 10 } },
+            grid: { color: 'rgba(46,46,62,0.5)' },
+            beginAtZero: true,
+        }
+    }
+};
+
+new Chart(document.getElementById('signupChart'), {
+    type: 'line',
+    data: {
+        labels,
+        datasets: [{
+            data: signups,
+            borderColor: '#A78BFA',
+            backgroundColor: 'rgba(167,139,250,0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+        }]
+    },
+    options: chartDefaults
+});
+
+new Chart(document.getElementById('applicationChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [{
+            data: applications,
+            backgroundColor: 'rgba(34,211,238,0.3)',
+            borderColor: '#22D3EE',
+            borderWidth: 1,
+            borderRadius: 4,
+        }]
+    },
+    options: chartDefaults
+});
+</script>
 @endsection

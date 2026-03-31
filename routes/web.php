@@ -8,18 +8,18 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Employer\JobController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
+use App\Http\Controllers\Employer\MessageController as EmployerMessageController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
-use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Public\JobController as PublicJobController;
 use App\Http\Controllers\Candidate\ProfileController;
 use App\Http\Controllers\Candidate\MessageController as CandidateMessageController;
-use App\Http\Controllers\Employer\MessageController as EmployerMessageController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\JobController as PublicJobController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-
-
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\EmployerController as AdminEmployerController;
 
 // ── Public ────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     })->middleware('throttle:6,1')->name('verification.send');
 });
 
-// ── Authenticated ─────────────────────────────────────────────────────────
+// ── Logout ────────────────────────────────────────────────────────────────
 Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -75,7 +75,21 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', fn() => 'Admin Dashboard — coming soon')->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/jobs', [AdminJobController::class, 'index'])->name('jobs.index');
+        Route::patch('/jobs/{job}/approve', [AdminJobController::class, 'approve'])->name('jobs.approve');
+        Route::patch('/jobs/{job}/reject', [AdminJobController::class, 'reject'])->name('jobs.reject');
+        Route::delete('/jobs/{job}', [AdminJobController::class, 'destroy'])->name('jobs.destroy');
+
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('users.toggle-active');
+
+        Route::resource('categories', AdminCategoryController::class)->except(['show']);
+
+        Route::get('/employers', [AdminEmployerController::class, 'index'])->name('employers.index');
+        Route::patch('/employers/{employer}/verify', [AdminEmployerController::class, 'verify'])->name('employers.verify');
+        Route::patch('/employers/{employer}/unverify', [AdminEmployerController::class, 'unverify'])->name('employers.unverify');
     });
 
 // ── Employer routes ───────────────────────────────────────────────────────
@@ -88,11 +102,11 @@ Route::middleware(['auth', 'verified', 'role:employer'])
         Route::post('jobs/{job}/duplicate', [JobController::class, 'duplicate'])->name('jobs.duplicate');
         Route::patch('jobs/{job}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
 
-        // Employer application management
         Route::get('jobs/{job}/applications', [EmployerApplicationController::class, 'index'])->name('jobs.applications.index');
         Route::get('jobs/{job}/applications/{application}', [EmployerApplicationController::class, 'show'])->name('jobs.applications.show');
         Route::patch('jobs/{job}/applications/{application}/status', [EmployerApplicationController::class, 'updateStatus'])->name('jobs.applications.update-status');
         Route::post('jobs/{job}/applications/{application}/note', [EmployerApplicationController::class, 'addNote'])->name('jobs.applications.add-note');
+
         Route::get('/messages', [EmployerMessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{application}', [EmployerMessageController::class, 'show'])->name('messages.show');
         Route::post('/messages/{application}', [EmployerMessageController::class, 'send'])->name('messages.send');
@@ -120,6 +134,7 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
         Route::post('/profile/education', [ProfileController::class, 'storeEducation'])->name('profile.education.store');
         Route::delete('/profile/education/{education}', [ProfileController::class, 'destroyEducation'])->name('profile.education.destroy');
         Route::post('/profile/cv', [ProfileController::class, 'uploadCv'])->name('profile.cv.upload');
+
         Route::get('/messages', [CandidateMessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{application}', [CandidateMessageController::class, 'show'])->name('messages.show');
         Route::post('/messages/{application}', [CandidateMessageController::class, 'send'])->name('messages.send');
@@ -129,21 +144,4 @@ Route::middleware(['auth', 'verified', 'role:candidate'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/jobs/{job:slug}/apply', [ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job:slug}/apply', [ApplicationController::class, 'store'])->name('jobs.apply.store');
-
-    Route::middleware(['auth', 'verified', 'role:admin'])
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-            Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-
-            // Job moderation
-            Route::get('/jobs', [AdminJobController::class, 'index'])->name('jobs.index');
-            Route::patch('/jobs/{job}/approve', [AdminJobController::class, 'approve'])->name('jobs.approve');
-            Route::patch('/jobs/{job}/reject', [AdminJobController::class, 'reject'])->name('jobs.reject');
-            Route::delete('/jobs/{job}', [AdminJobController::class, 'destroy'])->name('jobs.destroy');
-
-            // User management
-            Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-            Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('users.toggle-active');
-        });
 });
